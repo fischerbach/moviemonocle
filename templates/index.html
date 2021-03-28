@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧐 Movie Monocle</title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <link href="/static/main.css" rel="stylesheet">
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/static/autocomplete.js"></script>
+</head>
+<body>
+
+<div class="container">
+	<div class="row">
+	    <div class="col-12"><h1>🧐 Movie Monocle </h1></div>
+	    <div class="col-12">
+          <form action="" id="search-form">
+    	    <div id="custom-search-input">
+                <div class="input-group">
+                      
+                      <input id="search" type="text" autocomplete="off" class="search-query form-control" placeholder="Search" />
+                      <span class="input-group-btn">
+                         <button type="button" disabled>
+                            <span class="fa fa-search"></span>
+                           </button>
+                        </span>
+                     </div>
+                  </div>
+               </form>
+          </div>
+	</div>
+        <script>
+           $(document).ready(function() {
+            $.get('/all_titles', function(data, status) {
+               if (status == 'success') {
+                  autocomplete(document.getElementById("search"), Object.keys(data), data);
+               }
+            });
+           });
+        </script>
+     <div id="movies" class="portfolio-item row">
+        <div class="item col-lg-12 col-md-12 col-12">
+           <h3>Popular movies</h3>
+         </div>
+        <script>
+         $(document).ready(function() {
+          $.get('/movies/random/4', function(data, status) {
+             if (status == 'success') {
+
+                $.each(data, function(i, movie) {
+                   
+                   element = `
+                   <div class="item col-lg-3 col-md-4 col-6 ">
+           <a href="/details/${movie['id']}" class="fancylight popup-btn" data-fancybox-group="light">
+           <img class="img-fluid" src="/static/img/poster_tt${movie['id']}_1.jpeg" alt="${movie['title']}"><small>${movie['title']}</small>
+           </a>
+        </div>
+                   `
+                   $("#movies").append(element);
+                });
+
+                
+             }
+          });
+         });
+      </script>
+     </div>
+</div>
+</body>
+</html>
