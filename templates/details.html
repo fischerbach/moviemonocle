@@ -36,6 +36,26 @@
                </div>
                
             </div>
+               <script>
+                $(document).ready(function() {
+                 $.get('/movies/related/{{data['id']}}/true', function(data, status) {
+                    if (status == 'success') {
+       
+                       $.each(data, function(i, movie) {
+                          
+                          element = `
+
+                  <a href="/details/${movie['id']}" class=" col-lg-4 col-md-4 col-6" data-fancybox-group="light">
+                  <img class="img-fluid" src="/static/img/poster_tt${movie['id']}_1.jpeg" alt="${movie['title']}"><small>${movie['title']}</small>
+                  </a>
+
+                          `
+                          $("#movies").append(element);
+                       });
+                    }
+                 });
+                });
+             </script>
       </div>
 
 </div>

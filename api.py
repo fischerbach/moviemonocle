@@ -14,6 +14,55 @@ ratings = pd.read_sql('select id from (select id, count(distinct userId) as uu f
 movies['genres'] = movies['genres'].apply(lambda x: x.split("|"))
 genres = list(movies[['genres']].explode('genres')['genres'].unique())
 
+class Pipeless:
+    def __init__(self, key, app_id, base='https://api.pipeless.io/v1/apps', debug = False):
+        self.base = f'{base}/{app_id}'
+        self.debug = debug
+        self.headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "Authorization": f"Bearer {key}"
+        }
+    
+    def _chunks(self, lst, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
+    
+    def events_batch(self, data):
+        for chunk in self._chunks(data, 10):
+            payload = {
+                "events": chunk,
+                "synchronous": False
+            }
+
+            url = f"{self.base}/events/batch"
+
+            response = requests.request("POST", url, json=payload, headers=self.headers)
+            if(self.debug):
+                print(response.text)
+                # print(chunk)
+                pass
+    
+
+    def get_related_content(self, object_id, object_type):
+        url = f"{self.base}/algos/recommendations/related-content"
+        payload = {
+            "object": {
+                "id": object_id,
+                "type": object_type
+            },
+            "positive_rel": "liked",
+            "content_tagged_relationship_type": "taggedWith",
+            "ontent_tagged_object_type": "tag"
+            
+        }
+
+        response = requests.request("POST", url, json=payload, headers=self.headers)
+        return response.json()
+
+pipeless = Pipeless(key='API_KEY', app_id=APP_ID, debug=True)
+
 
 @app.route('/')
 def index():
@@ -58,6 +107,26 @@ def get_single_movie(imdb):
     movie = movies.query(f'id == "{imdb}"')
     if len(movie):
         return jsonify(movie.to_dict(orient='records'))
+    return jsonify([])
+
+@app.route('/movies/related/<imdb>')
+@app.route('/movies/related/<imdb>/<recurrent>')
+def get_related_movies(imdb, recurrent=False):
+    """Return a specific movie based on IMDB id."""
+    
+    related = pipeless.get_related_content(imdb, 'film')
+    result = []
+
+    try:
+        result = [movie for movie in map(lambda x: x['object']['id'], related['items'])]
+    except:
+        pass
+
+    if recurrent:
+        result = movies.query(f'id in {result}').to_dict(orient='records')
+
+    if len(result):
+        return jsonify(result)
     return jsonify([])
 
 @app.route('/genres/')
