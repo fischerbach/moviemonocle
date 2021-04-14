@@ -103,3 +103,7 @@
     background-color: DodgerBlue !important;
     color: #ffffff;
   }
+
+  #rating-buttons {
+    padding: 10px;
+  }

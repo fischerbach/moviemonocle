@@ -10,6 +10,7 @@
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="/static/autocomplete.js"></script>
+    <script src="/static/main.js"></script>
 </head>
 <body>
 
@@ -32,6 +33,7 @@
                </form>
           </div>
 	</div>
+     <div class="portfolio-menu mt-2 mb-4">
         <script>
            $(document).ready(function() {
             $.get('/all_titles', function(data, status) {
@@ -39,8 +41,11 @@
                   autocomplete(document.getElementById("search"), Object.keys(data), data);
                }
             });
+
+
            });
         </script>
+     </div>
      <div id="movies" class="portfolio-item row">
         <div class="item col-lg-12 col-md-12 col-12">
            <h3>Popular movies</h3>
@@ -55,7 +60,7 @@
                    element = `
                    <div class="item col-lg-3 col-md-4 col-6 ">
            <a href="/details/${movie['id']}" class="fancylight popup-btn" data-fancybox-group="light">
-           <img class="img-fluid" src="/static/img/poster_tt${movie['id']}_1.jpeg" alt="${movie['title']}"><small>${movie['title']}</small>
+           <img class="img-fluid" src="https://mapinmind.net/img/poster_tt${movie['id']}_1.jpeg" alt="${movie['title']}"><small>${movie['title']}</small>
            </a>
         </div>
                    `
@@ -65,9 +70,16 @@
                 
              }
           });
+
+          $("#user_id").text(getCookieValue('user_id'));
          });
       </script>
      </div>
+     <div class="col-12">
+      <small></small>Your ID: <i id='user_id'></i></small>
+      <button class='btn btn-sm' onclick="resetUserId();">Reset</button>
+      
+   </div>
 </div>
 </body>
 </html>

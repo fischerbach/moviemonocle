@@ -60,6 +60,49 @@ class Pipeless:
 
         response = requests.request("POST", url, json=payload, headers=self.headers)
         return response.json()
+    
+    def create_event(self, user_id, event_type, target_id):
+        url = f"{self.base}/events"
+        if(event_type not in ['liked', 'disliked']):
+            return {}
+
+        payload = {
+            "event": {
+                "start_object": {
+                    "id": user_id,
+                    "type": "user"
+                },
+                "relationship": {
+                    "type": event_type
+                },
+                "end_object": {
+                    "id": target_id,
+                    "type": "film"
+                }
+            },
+            "synchronous": False
+        }
+
+
+        response = requests.request("POST", url, json=payload, headers=self.headers)
+        return response.json()
+    
+    def get_activities(self, object_id, object_types):
+        url = f"{self.base}/algos/activity/object"
+
+        payload = {
+            "object":
+                {
+                    "id":object_id,
+                    "type":object_types
+                },
+            "direction":"incoming"
+        }
+
+        response = requests.request("POST", url, json=payload, headers=self.headers)
+        return response.json()
+
+    
 
 pipeless = Pipeless(key='API_KEY', app_id=APP_ID, debug=True)
 
@@ -112,8 +155,6 @@ def get_single_movie(imdb):
 @app.route('/movies/related/<imdb>')
 @app.route('/movies/related/<imdb>/<recurrent>')
 def get_related_movies(imdb, recurrent=False):
-    """Return a specific movie based on IMDB id."""
-    
     related = pipeless.get_related_content(imdb, 'film')
     result = []
 
@@ -129,10 +170,25 @@ def get_related_movies(imdb, recurrent=False):
         return jsonify(result)
     return jsonify([])
 
+@app.route('/activities/movie/<imdb>')
+def get_activities(imdb):
+    activities = pipeless.get_activities(imdb, 'film')
+    return jsonify(activities)
+
 @app.route('/genres/')
 def get_genres():
     if len(genres):
         return jsonify(genres)
+
+@app.route('/like/<user_id>/<imdb>', methods = ['POST'])
+def like(user_id, imdb):
+    pipeless.create_event(user_id, 'liked', imdb)
+    return jsonify({})
+
+@app.route('/dislike/<user_id>/<imdb>', methods = ['POST'])
+def dislike(user_id, imdb):
+    pipeless.create_event(user_id, 'disliked', imdb)
+    return jsonify({})
 
 
 @app.errorhandler(404)

@@ -9,6 +9,8 @@
     <link href="/static/main.css" rel="stylesheet">
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/static/main.js"></script>
+
 </head>
 <body>
 
@@ -27,7 +29,15 @@
             </ul>
             <div class="row">
                <div class="col-lg-6 col-md-12 col-12 ">
-                  <img id="main-image" class="img-fluid" src="/static/img/poster_tt{{data['id']}}_1.jpeg" alt="">
+                  <div id="rating-buttons" class="col-12">
+                     <button id="like" class="btn btn-success"> 👍 </button>
+                     <button id="dislike" class="btn btn-danger"> 👎 </button>
+                  </div>
+                  <img id="main-image" class="img-fluid" src="https://mapinmind.net/img/poster_tt{{data['id']}}_1.jpeg" alt="">
+                  <div class="feed">
+                     <ul id='feed-list' class="list-group">
+                      </ul>
+                  </div>
                </div>
                <div class="item col-lg-6 col-md-12 col-12 ">
                   <div id='movies' class="row">
@@ -45,19 +55,66 @@
                           
                           element = `
 
-                  <a href="/details/${movie['id']}" class=" col-lg-4 col-md-4 col-6" data-fancybox-group="light">
-                  <img class="img-fluid" src="/static/img/poster_tt${movie['id']}_1.jpeg" alt="${movie['title']}"><small>${movie['title']}</small>
-                  </a>
+                              <a href="/details/${movie['id']}" class=" col-lg-4 col-md-4 col-6" data-fancybox-group="light">
+                              <img class="img-fluid" src="https://mapinmind.net/img/poster_tt${movie['id']}_1.jpeg" alt="${movie['title']}"><small>${movie['title']}</small>
+                              </a>
 
                           `
                           $("#movies").append(element);
                        });
                     }
                  });
+
+                 $.get('/activities/movie/{{data['id']}}', function(data, status) {
+                    if (status == 'success') {
+       
+                       $.each(data['events'], function(i, activity) {
+                        var item_class = 'list-group-item-warning';
+                        var item_icon = "👎";
+                        var item_who = "Someone";
+                        if (activity['relationship']['type'] == 'liked') {
+                           item_class = 'list-group-item-success';
+                           item_icon = "👍";
+                        }
+
+                        if (activity['object']['id'] == getCookieValue('user_id')) {
+                           item_who = 'You';
+                           item_class = 'list-group-item-info';
+                        }
+                          
+                          element = `
+
+                           <li class="list-group-item ${item_class}">
+                              ${item_who} ${activity['relationship']['type']} this movie
+                              <span class="badge">${item_icon}</span>
+                           </li>
+
+                          `
+                          $("#feed-list").append(element);
+                       });
+                    }
+                 });
+
+
+
+                  $("#like").on('click', function(el,x) {
+                     Pipeless.like(
+                        getCookieValue('user_id'),
+                        '{{data['id']}}'
+                     );
+                  });
+
+                  $("#dislike").on('click', function() {
+                     Pipeless.dislike(
+                        getCookieValue('user_id'),
+                        '{{data['id']}}'
+                     );
+                  });
                 });
              </script>
       </div>
 
+      
 </div>
 </body>
 </html>
